@@ -1,0 +1,6 @@
+{
+  "name": "Libri Interattivi Lingue Orientali",
+  "description": "Un'applicazione per creare e studiare libri interattivi per le lingue orientali, contenente spiegazioni di grammatica, dialoghi parlati, esercizi interattivi di verifica, video-lezioni e illustrazioni.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
