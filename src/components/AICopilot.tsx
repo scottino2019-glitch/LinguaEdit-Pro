@@ -281,6 +281,7 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
       setStatusError(
         err.message || 'La connessione con il server Gemini ha fallito. Riprova o imposta una chiave personale per bypassare i limiti.'
       );
+      setShowKeyConfig(true);
       setLoading(false);
     }
   };

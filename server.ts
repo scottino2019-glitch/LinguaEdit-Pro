@@ -225,9 +225,30 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
     return res.json(parsedData);
   } catch (error: any) {
     console.error('Errore durante la generazione del capitolo:', error);
+    
+    let errorDetails = error.message || String(error);
+    const msg = String(error.message || '');
+    if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota') || msg.includes('429')) {
+      errorDetails = "La quota giornaliera gratuita di test della chiave API del server è attualmente esaurita. Per continuare a generare subito e senza alcun limite, ti invitiamo ad attivare l'opzione 'Chiave API Gemini Personale' in basso nel pannello del Copilot e inserire una tua chiave API gratuita (creabile in 10 secondi su Google AI Studio)!";
+    } else {
+      try {
+        if (msg.trim().startsWith('{')) {
+          const parsed = JSON.parse(msg);
+          if (parsed.error?.message) {
+            const pMsg = parsed.error.message;
+            if (pMsg.includes('quota') || parsed.error.status === 'RESOURCE_EXHAUSTED' || parsed.error.code === 429) {
+              errorDetails = "La quota giornaliera gratuita di test della chiave API del server è attualmente esaurita. Per continuare a generare subito e senza alcun limite, ti invitiamo ad attivare l'opzione 'Chiave API Gemini Personale' in basso nel pannello del Copilot e inserisci una tua chiave API gratuita (creabile in 10 secondi su Google AI Studio)!";
+            } else {
+              errorDetails = pMsg;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
     return res.status(500).json({ 
       error: 'Impossibile generare il capitolo con l\'AI.',
-      details: error.message || error 
+      details: errorDetails
     });
   }
 });
