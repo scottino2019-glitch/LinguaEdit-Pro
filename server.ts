@@ -147,21 +147,22 @@ app.post('/api/generate-chapter', async (req, res) => {
   };
 
   try {
-    const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento delle lingue orientali (Giapponese, Cinese Mandarino, Coreano) a studenti italiani.
-Il tuo compito è creare un capitolo di un libro interattivo per la lingua "${language}" a livello "${level}" incentrato sul tema richiesto: "${topic}".
-Fornisci spiegazioni grammaticali chiarissime ed esaustive, dialoghi autentici della vita quotidiana in cui ogni battuta ha la trascrizione fonetica (Pinyin per Cinese, Romaji per Giapponese, Romanizzazione standard per il Coreano) e la traduzione italiana, un elenco di vocaboli utili con esempi, ed esercizi interattivi (scelta multipla, compleatamento spazi o riordino frasi).
-TUTTE le parti descrittive, spiegazioni ed esercizi devono essere scritti in ITALIANO.
-Assicurati che i caratteri orientali siano corretti (es: Kanji/Kana corretti per il giapponese, caratteri semplificati per il cinese, Han-geul nativo per il coreano).
-Includi sempre almeno 1 nota grammaticale, 1 conversazione a più battute, 1 sezione vocaboli e almeno 2 esercizi formativi.`;
+    const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${language} (${level}) a studenti italiani.
+Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
+1 Blocco Grammar (spiegazione corta di 1 regola + max 2 termini salienti).
+1 Blocco Dialogue (una conversazione vivace di sole 2 o 3 battute totali).
+1 Blocco Vocabulary (con soli 2 termini importanti + 1 frase ciascuno).
+1 Blocco Exercise (tipo scelta multipla o completa la frase molto semplice).
+È fondamentale che la lezione sia breve per generare in meno di 5 secondi. Scrivi spiegazioni e consegne esclusivamente in italiano.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.5-flash',
-      contents: `Genera un capitolo interattivo completo per studiare la lingua ${language} (${level}) sul tema: ${topic}`,
+      contents: `Genera una micro-lezione per ${language} (${level}) su tema: ${topic}`,
       config: {
         systemInstruction: systemPrompt,
         responseMimeType: 'application/json',
         responseSchema: responseSchema,
-        temperature: 0.8
+        temperature: 0.7
       }
     });
 

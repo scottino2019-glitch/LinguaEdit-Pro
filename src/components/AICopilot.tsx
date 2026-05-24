@@ -31,6 +31,20 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
   const [loadingStepIdx, setLoadingStepIdx] = useState(0);
   const [statusError, setStatusError] = useState<string | null>(null);
 
+  // States for local API key management (supports direct browser calls to bypass Netlify 504 serverless timeouts)
+  const [userApiKey, setUserApiKey] = useState('');
+  const [useLocalKey, setUseLocalKey] = useState(false);
+  const [showKeyConfig, setShowKeyConfig] = useState(false);
+
+  // Load key from localStorage on mount
+  useEffect(() => {
+    const savedKey = localStorage.getItem('user_gemini_api_key');
+    if (savedKey) {
+      setUserApiKey(savedKey);
+      setUseLocalKey(true);
+    }
+  }, []);
+
   // Cycling through reassuring messages during AI creation
   useEffect(() => {
     let interval: any;
@@ -43,6 +57,19 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
     }
     return () => clearInterval(interval);
   }, [loading]);
+
+  const handleSavePersonalKey = (key: string) => {
+    const trimmed = key.trim();
+    if (trimmed) {
+      localStorage.setItem('user_gemini_api_key', trimmed);
+      setUserApiKey(trimmed);
+      setUseLocalKey(true);
+    } else {
+      localStorage.removeItem('user_gemini_api_key');
+      setUserApiKey('');
+      setUseLocalKey(false);
+    }
+  };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,24 +86,163 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
     }
 
     try {
-      const response = await fetch('/api/generate-chapter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          language: targetBook.language,
-          topic: topic.trim(),
-          level,
-        }),
-      });
+      let parsedChapter: any = null;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || 'Errore di rete generico.');
+      if (useLocalKey && userApiKey.trim()) {
+        const apiKey = userApiKey.trim();
+        // Schema definition for client side execution
+        const responseSchema = {
+          type: "OBJECT",
+          properties: {
+            title: { type: "STRING", description: "Titolo in italiano evocativo del capitolo" },
+            description: { type: "STRING", description: "Presentazione obiettivi didattici in italiano" },
+            blocks: {
+              type: "ARRAY",
+              description: "Sequenza strutturata di massimo 4 blocchi didattici",
+              items: {
+                type: "OBJECT",
+                properties: {
+                  type: { type: "STRING", description: "grammar, dialogue, vocabulary, exercise, image" },
+                  grammarTitle: { type: "STRING" },
+                  grammarText: { type: "STRING", description: "Spiegazione sintetica ed efficace in italiano (2 paragrafi max)" },
+                  grammarTerms: {
+                    type: "ARRAY",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        term: { type: "STRING" },
+                        phonetic: { type: "STRING" },
+                        translation: { type: "STRING" }
+                      },
+                      required: ["term", "phonetic", "translation"]
+                    }
+                  },
+                  dialogueTitle: { type: "STRING" },
+                  dialogueCharacters: { type: "ARRAY", items: { type: "STRING" } },
+                  dialogueLines: {
+                    type: "ARRAY",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        character: { type: "STRING" },
+                        text: { type: "STRING" },
+                        phonetic: { type: "STRING" },
+                        translation: { type: "STRING" }
+                      },
+                      required: ["character", "text", "phonetic", "translation"]
+                    }
+                  },
+                  vocabularyList: {
+                    type: "ARRAY",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        term: { type: "STRING" },
+                        phonetic: { type: "STRING" },
+                        translation: { type: "STRING" },
+                        example: { type: "STRING" },
+                        examplePhonetic: { type: "STRING" },
+                        exampleTranslation: { type: "STRING" }
+                      },
+                      required: ["term", "phonetic", "translation"]
+                    }
+                  },
+                  exerciseType: { type: "STRING", description: "multiple-choice, fill-blank, reorder" },
+                  exerciseQuestion: { type: "STRING" },
+                  exerciseNote: { type: "STRING" },
+                  mcOptions: { type: "ARRAY", items: { type: "STRING" } },
+                  mcCorrectIndex: { type: "INTEGER" },
+                  fbSentenceBefore: { type: "STRING" },
+                  fbSentenceAfter: { type: "STRING" },
+                  fbCorrectAnswer: { type: "STRING" },
+                  reorderWords: { type: "ARRAY", items: { type: "STRING" } },
+                  reorderCorrectOrder: { type: "STRING" },
+                  imageUrl: { type: "STRING" },
+                  imageCaption: { type: "STRING" }
+                },
+                required: ["type"]
+              }
+            }
+          },
+          required: ["title", "description", "blocks"]
+        };
+
+        const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${targetBook.language} (${level}) a studenti italiani. Crea una lezione sintetica di massimo 4 blocchi (1 grammar, 1 dialogue, 1 vocab, 1 exercise). Scrivi tutto in italiano.`;
+
+        // We call gemini-2.5-flash directly. Excellent performance and fully client side!
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const directResponse = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: `Genera una micro-lezione per ${targetBook.language} (${level}) su tema: ${topic}` }
+                ]
+              }
+            ],
+            systemInstruction: {
+              parts: [
+                { text: systemPrompt }
+              ]
+            },
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: responseSchema,
+              temperature: 0.7
+            }
+          })
+        });
+
+        if (!directResponse.ok) {
+          const errText = await directResponse.text();
+          let errMessage = 'Errore nelle API di Google.';
+          try {
+            const errJson = JSON.parse(errText);
+            errMessage = errJson.error?.message || errText;
+          } catch(e) {}
+          throw new Error(`Google API Direct Error: ${errMessage}`);
+        }
+
+        const resData = await directResponse.json();
+        const responseText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!responseText) {
+          throw new Error('Nessun testo generato dalle API di Google Gemini.');
+        }
+
+        parsedChapter = JSON.parse(responseText);
+
+      } else {
+        // Fall back to serverless api (our Express route / Netlify function proxy)
+        const response = await fetch('/api/generate-chapter', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            language: targetBook.language,
+            topic: topic.trim(),
+            level,
+          }),
+        });
+
+        if (!response.ok) {
+          // Detect HTML error codes (like Netlify's 504 HTML page) and supply human-friendly message
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.includes('text/html')) {
+            throw new Error(
+              'Timeout di Netlify (Errore 504). La generazione ha superato i 10 secondi limite del server Netlify. Consigliamo di abilitare l\'opzione "Chiave API Gemini Personale" qui sotto per generare istantaneamente!'
+            );
+          }
+          const errorData = await response.json();
+          throw new Error(errorData.details || errorData.error || 'Errore di rete generico.');
+        }
+
+        parsedChapter = await response.json();
       }
-
-      const parsedChapter = await response.json();
       
       // Map correctly to Chapter model
       const generatedChapter: Chapter = {
@@ -96,7 +262,7 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
     } catch (err: any) {
       console.error(err);
       setStatusError(
-        err.message || 'La connessione con il server Gemini ha fallito. Riprova tra pochi istanti.'
+        err.message || 'La connessione con il server Gemini ha fallito. Riprova o imposta una chiave personale per bypassare i limiti.'
       );
       setLoading(false);
     }
@@ -218,9 +384,90 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
             {statusError && (
               <div className="p-3 border border-rose-200 bg-rose-50 text-rose-800 text-xs rounded-xl flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                <span>{statusError}</span>
+                <span className="leading-normal">{statusError}</span>
               </div>
             )}
+
+            {/* Expandable Advanced API Connection Settings for Netlify stability */}
+            <div className="border border-slate-150 rounded-2xl overflow-hidden bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setShowKeyConfig(!showKeyConfig)}
+                className="w-full px-4 py-2.5 flex items-center justify-between text-left text-xs bg-slate-50 hover:bg-slate-100/80 font-semibold text-slate-700 transition-colors"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${useLocalKey && userApiKey ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+                  <span>
+                    Connettività AI: {useLocalKey && userApiKey ? 'Connessione Diretta (Bypassa limiti Netlify)' : 'Server Standard (Proxy Netlify)'}
+                  </span>
+                </div>
+                <span className="text-[10px] text-indigo-600 font-bold">
+                  {showKeyConfig ? 'Nascondi Opzioni' : 'Configura Chiave Personale'}
+                </span>
+              </button>
+
+              {showKeyConfig && (
+                <div className="p-4 border-t border-slate-100 space-y-3 bg-white">
+                  <p className="text-[10px] text-slate-500 leading-relaxed">
+                    <b>Nota importante per Netlify:</b> I server di Netlify (free) interrompono i caricamenti se durano più di 10 secondi, causando l'errore 504. Inserendo qui sotto una tua chiave API Gemini gratuita, l'applicazione interrogherà l'AI direttamente dal tuo browser, garantendo una velocità istantanea e scavalcando i limiti di Netlify! La chiave viene memorizzata in modo sicuro e privato solo sul tuo dispositivo.
+                  </p>
+
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                      Chiave API Gemini Personale (AI Studio)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id="local-api-key-input"
+                        type="password"
+                        placeholder="Incolla qui la tua API Key (es. AIzaSy...)"
+                        value={userApiKey}
+                        onChange={(e) => setUserApiKey(e.target.value)}
+                        className="flex-1 px-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      />
+                      {userApiKey.trim() ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSavePersonalKey(userApiKey)}
+                          className="px-3.5 py-1.5 bg-indigo-600 text-white font-bold text-xs rounded-xl hover:bg-indigo-700 cursor-pointer"
+                        >
+                          Salva
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {localStorage.getItem('user_gemini_api_key') && (
+                    <div className="flex items-center justify-between pt-1">
+                      <label className="flex items-center gap-1.5 text-xs text-slate-700 font-medium cursor-pointer">
+                        <input
+                          id="use-local-key-checkbox"
+                          type="checkbox"
+                          checked={useLocalKey}
+                          onChange={(e) => setUseLocalKey(e.target.checked)}
+                          className="w-3.5 h-3.5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <span>Usa chiave personale salvata</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSavePersonalKey('');
+                          alert('Chiave API rimossa con successo.');
+                        }}
+                        className="text-[10px] text-rose-500 hover:text-rose-700 font-bold"
+                      >
+                        Elimina chiave salvata
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="text-[10px] text-indigo-500 font-semibold">
+                    💡 Puoi ottenere una chiave Gemini gratuita cliccando su "Get API Key" nel tuo account Google AI Studio.
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Modal actions */}
             <div className="pt-3 flex justify-end gap-2 text-xs md:text-sm">

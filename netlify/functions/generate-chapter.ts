@@ -61,7 +61,6 @@ export const handler = async (event: any) => {
         }
       }
     });
-
     const responseSchema = {
       type: Type.OBJECT,
       properties: {
@@ -69,7 +68,7 @@ export const handler = async (event: any) => {
         description: { type: Type.STRING, description: 'Presentazione degli obiettivi didattici e del contesto culturale in italiano' },
         blocks: {
           type: Type.ARRAY,
-          description: 'Sequenza strutturata di blocchi educativi interattivi',
+          description: 'Sequenza strutturata di massimo 4 blocchi didattici interattivi',
           items: {
             type: Type.OBJECT,
             properties: {
@@ -80,38 +79,37 @@ export const handler = async (event: any) => {
               
               // Grammar Block fields
               grammarTitle: { type: Type.STRING, description: 'Titolo della nota grammaticale' },
-              grammarText: { type: Type.STRING, description: 'Spiegazione approfondita delle regole in italiano, includendo brevi specchietti e paragrafi. Supporta formattazione Markdown.' },
+              grammarText: { type: Type.STRING, description: 'Spiegazione sintetica ed efficace in italiano (2 paragrafi max).' },
               grammarTerms: {
                 type: Type.ARRAY,
-                description: 'Termini salienti associati alla regola',
+                description: 'Termini salienti (massimo 2 per brevità)',
                 items: {
                   type: Type.OBJECT,
                   properties: {
-                    term: { type: Type.STRING, description: 'Termine originale in kanji/kana, caratteri cinesi o hangeul con pronuncia tra parentesi se rilevante' },
-                    phonetic: { type: Type.STRING, description: 'Trascrizione fonetica (Pinyin/Rōmaji/Coreano romanizzato)' },
-                    translation: { type: Type.STRING, description: 'Traduzione in italiano' }
+                    term: { type: Type.STRING, description: 'Termine originale' },
+                    phonetic: { type: Type.STRING, description: 'Fonetica' },
+                    translation: { type: Type.STRING, description: 'Traduzione' }
                   },
                   required: ['term', 'phonetic', 'translation']
                 }
               },
 
               // Dialogue Block fields
-              dialogueTitle: { type: Type.STRING, description: 'Titolo del contesto della conversazione' },
+              dialogueTitle: { type: Type.STRING, description: 'Contesto' },
               dialogueCharacters: {
                 type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: 'Nomi dei personaggi coinvolti (massimo 2 per semplicità)'
+                items: { type: Type.STRING }
               },
               dialogueLines: {
                 type: Type.ARRAY,
-                description: 'Flusso di battute tra i parlanti',
+                description: 'Battute corte (massimo 2-3 battute totali per velocità)',
                 items: {
                   type: Type.OBJECT,
                   properties: {
-                    character: { type: Type.STRING, description: 'Nome del parlante' },
-                    text: { type: Type.STRING, description: 'Battuta nativa autentica nella lingua orientale' },
-                    phonetic: { type: Type.STRING, description: 'Pronuncia fonetica accurata (Rōmaji, Pinyin o trascrizione coreana)' },
-                    translation: { type: Type.STRING, description: 'Traduzione fedele in italiano' }
+                    character: { type: Type.STRING, description: 'Parlante' },
+                    text: { type: Type.STRING, description: 'Frase originale' },
+                    phonetic: { type: Type.STRING, description: 'Trascrizione fonetica' },
+                    translation: { type: Type.STRING, description: 'Traduzione italiana' }
                   },
                   required: ['character', 'text', 'phonetic', 'translation']
                 }
@@ -120,16 +118,16 @@ export const handler = async (event: any) => {
               // Vocabulary Block fields
               vocabularyList: {
                 type: Type.ARRAY,
-                description: 'Sillaboro o carte di pronuncia vocabolario',
+                description: 'Massimo 2-3 vocaboli per rapidità di generazione',
                 items: {
                   type: Type.OBJECT,
                   properties: {
                     term: { type: Type.STRING, description: 'Parola originale' },
                     phonetic: { type: Type.STRING, description: 'Trascrizione fonetica' },
-                    translation: { type: Type.STRING, description: 'Traduzione italiana' },
-                    example: { type: Type.STRING, description: 'Breve frase di esempio nativa (facoltativa)' },
-                    examplePhonetic: { type: Type.STRING, description: 'Pronuncia dell\'esempio (facoltativa)' },
-                    exampleTranslation: { type: Type.STRING, description: 'Traduzione dell\'esempio (facoltativa)' }
+                    translation: { type: Type.STRING, description: 'Traduzione' },
+                    example: { type: Type.STRING, description: 'Frase esempio (opzionale)' },
+                    examplePhonetic: { type: Type.STRING, description: 'Pronuncia' },
+                    exampleTranslation: { type: Type.STRING, description: 'Traduzione esempio' }
                   },
                   required: ['term', 'phonetic', 'translation']
                 }
@@ -140,27 +138,26 @@ export const handler = async (event: any) => {
                 type: Type.STRING, 
                 description: 'Tipo di esercizio. Valori: multiple-choice, fill-blank, reorder' 
               },
-              exerciseQuestion: { type: Type.STRING, description: 'Testo dell\'esercizio o consegna in italiano' },
-              exerciseNote: { type: Type.STRING, description: 'Suggerimento o commento chiarificatore' },
+              exerciseQuestion: { type: Type.STRING, description: 'Consegna esercizio in italiano' },
+              exerciseNote: { type: Type.STRING, description: 'Suggerimento' },
               mcOptions: { 
                 type: Type.ARRAY, 
                 items: { type: Type.STRING }, 
-                description: 'Array di esattamente 4 opzioni di risposta' 
+                description: 'Esattamente 4 opzioni' 
               },
               mcCorrectIndex: { type: Type.INTEGER, description: 'Indice corretto (0-3)' },
-              fbSentenceBefore: { type: Type.STRING, description: 'Testo prima del buco' },
-              fbSentenceAfter: { type: Type.STRING, description: 'Testo dopo il buco' },
-              fbCorrectAnswer: { type: Type.STRING, description: 'Parola nativa esatta da scrivere per riempire' },
+              fbSentenceBefore: { type: Type.STRING, description: 'Prima' },
+              fbSentenceAfter: { type: Type.STRING, description: 'Dopo' },
+              fbCorrectAnswer: { type: Type.STRING, description: 'Parola corretta' },
               reorderWords: { 
                 type: Type.ARRAY, 
-                items: { type: Type.STRING }, 
-                description: 'Lista di parole native disordinate da trascinare/ordinare' 
+                items: { type: Type.STRING }
               },
-              reorderCorrectOrder: { type: Type.STRING, description: 'La frase riordinata corretta formata unendo i singoli elementi' },
+              reorderCorrectOrder: { type: Type.STRING },
 
               // Image block fields
-              imageUrl: { type: Type.STRING, description: 'Lasciare vuoto. Verrà selezionato un fallback locale o riempito su richiesta.' },
-              imageCaption: { type: Type.STRING, description: 'Didascalia romantica / culturale sull\'immagine in italiano' }
+              imageUrl: { type: Type.STRING, description: 'Lasciare vuoto' },
+              imageCaption: { type: Type.STRING, description: 'Didascalia romantica in italiano' }
             },
             required: ['type']
           }
@@ -169,21 +166,22 @@ export const handler = async (event: any) => {
       required: ['title', 'description', 'blocks']
     };
 
-    const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento delle lingue orientali (Giapponese, Cinese Mandarino, Coreano) a studenti italiani.
-Il tuo compito è creare un capitolo di un libro interattivo per la lingua "${language}" a livello "${level}" incentrato sul tema richiesto: "${topic}".
-Fornisci spiegazioni grammaticali chiarissime ed esaustive, dialoghi autentici della vita quotidiana in cui ogni battuta ha la trascrizione fonetica (Pinyin per Cinese, Romaji per Giapponese, Romanizzazione standard per il Coreano) e la traduzione italiana, un elenco di vocaboli utili con esempi, ed esercizi interattivi (scelta multipla, compleatamento spazi o riordino frasi).
-TUTTE le parti descrittive, spiegazioni ed esercizi devono essere scritti in ITALIANO.
-Assicurati che i caratteri orientali siano corretti (es: Kanji/Kana corretti per il giapponese, caratteri semplificati per il cinese, Han-geul nativo per il coreano).
-Includi sempre almeno 1 nota grammaticale, 1 conversazione a più battute, 1 sezione vocaboli e almeno 2 esercizi formativi.`;
+    const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${language} (${level}) a studenti italiani.
+Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
+1 Blocco Grammar (spiegazione corta di 1 regola + max 2 termini salienti).
+1 Blocco Dialogue (una conversazione vivace di sole 2 o 3 battute totali).
+1 Blocco Vocabulary (con soli 2 termini importanti + 1 frase ciascuno).
+1 Blocco Exercise (tipo scelta multipla o completa la frase molto semplice).
+È fondamentale che la lezione sia breve per generare in meno di 5 secondi. Scrivi spiegazioni e consegne esclusivamente in italiano.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.5-flash',
-      contents: `Genera un capitolo interattivo completo per studiare la lingua ${language} (${level}) sul tema: ${topic}`,
+      contents: `Genera una micro-lezione per ${language} (${level}) su tema: ${topic}`,
       config: {
         systemInstruction: systemPrompt,
         responseMimeType: 'application/json',
         responseSchema: responseSchema,
-        temperature: 0.8
+        temperature: 0.7
       }
     });
 
