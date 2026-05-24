@@ -36,8 +36,20 @@ function renderMarkdown(text: string): string {
 }
 
 export function exportBookToHTML(book: Book) {
-  const languageLabel = book.language === 'Japanese' ? 'GIAPPONESE' : book.language === 'Chinese' ? 'CINESE' : 'COREANO';
-  const languageColorClass = book.language === 'Japanese' ? 'bg-rose-600' : book.language === 'Chinese' ? 'bg-amber-600' : 'bg-indigo-600';
+  const languageLabel = book.language === 'Japanese' ? 'GIAPPONESE' : 
+                        book.language === 'Chinese' ? 'CINESE' : 
+                        book.language === 'Korean' ? 'COREANO' :
+                        book.language === 'Russian' ? 'RUSSO' :
+                        book.language === 'Turkish' ? 'TURCO' :
+                        book.language === 'Arabic' ? 'ARABO' :
+                        book.language === 'Thai' ? 'THAI' : 'HINDI';
+  const languageColorClass = book.language === 'Japanese' ? 'bg-rose-600' : 
+                             book.language === 'Chinese' ? 'bg-amber-600' : 
+                             book.language === 'Korean' ? 'bg-indigo-600' :
+                             book.language === 'Russian' ? 'bg-red-600' :
+                             book.language === 'Turkish' ? 'bg-pink-600' :
+                             book.language === 'Arabic' ? 'bg-emerald-600' :
+                             book.language === 'Thai' ? 'bg-fuchsia-600' : 'bg-orange-600';
   const displayDifficulty = book.level ? book.level.toUpperCase() : 'PRINCIPIANTE';
   
   // Start compiling chapters

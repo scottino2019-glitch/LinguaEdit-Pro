@@ -198,6 +198,16 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
       defaultImageUrl = 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&q=80&w=800'; // China
     } else if (language === 'Korean') {
       defaultImageUrl = 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&q=80&w=800'; // Korea
+    } else if (language === 'Russian') {
+      defaultImageUrl = 'https://images.unsplash.com/photo-1512495039889-52a3b799c9bc?auto=format&fit=crop&q=80&w=800'; // Russia
+    } else if (language === 'Turkish') {
+      defaultImageUrl = 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&q=80&w=800'; // Turkey
+    } else if (language === 'Arabic') {
+      defaultImageUrl = 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&q=80&w=800'; // Arab Countries
+    } else if (language === 'Thai') {
+      defaultImageUrl = 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&q=80&w=800'; // Thailand
+    } else if (language === 'Hindi') {
+      defaultImageUrl = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=800'; // India
     }
 
     if (parsedData.blocks) {

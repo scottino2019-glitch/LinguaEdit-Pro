@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type LanguageCode = 'Japanese' | 'Chinese' | 'Korean';
+export type LanguageCode = 'Japanese' | 'Chinese' | 'Korean' | 'Russian' | 'Turkish' | 'Arabic' | 'Thai' | 'Hindi';
 
 export type BlockType = 'grammar' | 'dialogue' | 'vocabulary' | 'exercise' | 'video' | 'image';
 

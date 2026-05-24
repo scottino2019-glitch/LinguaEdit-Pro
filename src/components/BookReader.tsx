@@ -179,9 +179,20 @@ export function BookReader({
           <span className={`px-2 py-0.5 text-[8px] font-bold tracking-wider rounded text-white uppercase ${
             book.language === 'Japanese' ? 'bg-blue-600' :
             book.language === 'Chinese' ? 'bg-amber-600' :
-            'bg-indigo-600'
+            book.language === 'Korean' ? 'bg-indigo-605' :
+            book.language === 'Russian' ? 'bg-red-650' :
+            book.language === 'Turkish' ? 'bg-pink-650' :
+            book.language === 'Arabic' ? 'bg-emerald-650' :
+            book.language === 'Thai' ? 'bg-fuchsia-650' :
+            'bg-orange-650'
           }`}>
-            {book.language === 'Japanese' ? 'Giapponese' : book.language === 'Chinese' ? 'Cinese' : 'Coreano'}
+            {book.language === 'Japanese' ? 'Giapponese' : 
+             book.language === 'Chinese' ? 'Cinese' : 
+             book.language === 'Korean' ? 'Coreano' :
+             book.language === 'Russian' ? 'Russo' :
+             book.language === 'Turkish' ? 'Turco' :
+             book.language === 'Arabic' ? 'Arabo' :
+             book.language === 'Thai' ? 'Thai' : 'Hindi'}
           </span>
           <h2 className="text-sm font-bold text-slate-800 leading-tight">{book.title}</h2>
           <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">{book.description}</p>

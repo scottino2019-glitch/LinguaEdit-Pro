@@ -109,6 +109,11 @@ export function BookShelf({
       case 'Japanese': return '日本語 Giapponese';
       case 'Chinese': return '中文 Cinese (Mandarino)';
       case 'Korean': return '한국어 Coreano';
+      case 'Russian': return 'Русский Russo';
+      case 'Turkish': return 'Türkçe Turco';
+      case 'Arabic': return 'العربية Arabo';
+      case 'Thai': return 'ไทย Thai';
+      case 'Hindi': return 'हिन्दी Hindi';
     }
   };
 
@@ -117,6 +122,11 @@ export function BookShelf({
       case 'Japanese': return 'from-rose-500/10 to-rose-600/20 text-rose-700 border-rose-200';
       case 'Chinese': return 'from-amber-500/10 to-amber-600/20 text-amber-800 border-amber-200';
       case 'Korean': return 'from-sky-500/10 to-sky-600/20 text-sky-800 border-sky-200';
+      case 'Russian': return 'from-red-500/10 to-red-600/20 text-red-800 border-red-200';
+      case 'Turkish': return 'from-pink-500/10 to-pink-600/20 text-pink-850 border-pink-200';
+      case 'Arabic': return 'from-emerald-500/10 to-emerald-600/20 text-emerald-800 border-emerald-200';
+      case 'Thai': return 'from-fuchsia-500/10 to-fuchsia-600/20 text-fuchsia-800 border-fuchsia-200';
+      case 'Hindi': return 'from-orange-500/10 to-orange-600/20 text-orange-850 border-orange-200';
     }
   };
 
@@ -205,6 +215,11 @@ export function BookShelf({
             <option value="Japanese">Giapponese (日本語)</option>
             <option value="Chinese">Cinese (中文)</option>
             <option value="Korean">Coreano (한국어)</option>
+            <option value="Russian">Russo (Русский)</option>
+            <option value="Turkish">Turco (Türkçe)</option>
+            <option value="Arabic">Arabo (العربية)</option>
+            <option value="Thai">Thai (ไทย)</option>
+            <option value="Hindi">Hindi (हिन्दी)</option>
           </select>
 
           <select
@@ -251,9 +266,20 @@ export function BookShelf({
                   <span className={`px-2 py-0.5 text-[9px] font-bold tracking-wider uppercase rounded text-white ${
                     book.language === 'Japanese' ? 'bg-blue-600' :
                     book.language === 'Chinese' ? 'bg-amber-600' :
-                    'bg-indigo-600'
+                    book.language === 'Korean' ? 'bg-indigo-600' :
+                    book.language === 'Russian' ? 'bg-red-650' :
+                    book.language === 'Turkish' ? 'bg-pink-650' :
+                    book.language === 'Arabic' ? 'bg-emerald-650' :
+                    book.language === 'Thai' ? 'bg-fuchsia-650' :
+                    'bg-orange-650'
                   }`}>
-                    {book.language === 'Japanese' ? 'GIAPPONESE' : book.language === 'Chinese' ? 'CINESE' : 'COREANO'}
+                    {book.language === 'Japanese' ? 'GIAPPONESE' : 
+                     book.language === 'Chinese' ? 'CINESE' : 
+                     book.language === 'Korean' ? 'COREANO' :
+                     book.language === 'Russian' ? 'RUSSO' :
+                     book.language === 'Turkish' ? 'TURCO' :
+                     book.language === 'Arabic' ? 'ARABO' :
+                     book.language === 'Thai' ? 'THAI' : 'HINDI'}
                   </span>
                   
                   <span className="px-2 py-0.5 text-[9px] bg-slate-900/90 text-slate-100 font-bold tracking-wider uppercase rounded flex items-center gap-1">
@@ -376,6 +402,11 @@ export function BookShelf({
                     <option value="Japanese">Giapponese (日本語)</option>
                     <option value="Chinese">Cinese Mandarino (中文)</option>
                     <option value="Korean">Coreano (한국어)</option>
+                    <option value="Russian">Russo (Русский)</option>
+                    <option value="Turkish">Turco (Türkçe)</option>
+                    <option value="Arabic">Arabo (العربية)</option>
+                    <option value="Thai">Thai (ไทย)</option>
+                    <option value="Hindi">Hindi (हिन्दी)</option>
                   </select>
                 </div>
 

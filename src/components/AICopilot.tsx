@@ -335,11 +335,20 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
                   onChange={(e) => setTargetBookId(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-700 text-xs md:text-sm focus:outline-none"
                 >
-                  {books.map(b => (
-                    <option key={b.id} value={b.id}>
-                      {b.title} [{b.language === 'Japanese' ? 'GIAPPONESE' : b.language === 'Chinese' ? 'CINESE' : 'COREANO'}]
-                    </option>
-                  ))}
+                  {books.map(b => {
+                    const langUpper = b.language === 'Japanese' ? 'GIAPPONESE' :
+                                      b.language === 'Chinese' ? 'CINESE' :
+                                      b.language === 'Korean' ? 'COREANO' :
+                                      b.language === 'Russian' ? 'RUSSO' :
+                                      b.language === 'Turkish' ? 'TURCO' :
+                                      b.language === 'Arabic' ? 'ARABO' :
+                                      b.language === 'Thai' ? 'THAI' : 'HINDI';
+                    return (
+                      <option key={b.id} value={b.id}>
+                        {b.title} [{langUpper}]
+                      </option>
+                    );
+                  })}
                 </select>
               )}
             </div>
