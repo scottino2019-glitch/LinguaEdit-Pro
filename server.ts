@@ -207,13 +207,18 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
       defaultImageUrl = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=800'; // India
     }
 
-    // Adapt image blocks to have a fallbacks if empty
+    // Adapt image blocks to have a fallbacks if empty and normalize type to lowercase
     if (parsedData.blocks) {
       parsedData.blocks = parsedData.blocks.map((block: any, idx: number) => {
-        if (block.type === 'image' && !block.imageUrl) {
-          block.imageUrl = defaultImageUrl;
+        const typeNormalized = (block.type || '').split('-')[0].toLowerCase();
+        const updatedBlock = {
+          ...block,
+          type: typeNormalized
+        };
+        if (typeNormalized === 'image' && !updatedBlock.imageUrl) {
+          updatedBlock.imageUrl = defaultImageUrl;
         }
-        return block;
+        return updatedBlock;
       });
     }
 

@@ -228,10 +228,15 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
 
     if (parsedData.blocks) {
       parsedData.blocks = parsedData.blocks.map((block: any) => {
-        if (block.type === 'image' && !block.imageUrl) {
-          block.imageUrl = defaultImageUrl;
+        const typeNormalized = (block.type || '').split('-')[0].toLowerCase();
+        const updatedBlock = {
+          ...block,
+          type: typeNormalized
+        };
+        if (typeNormalized === 'image' && !updatedBlock.imageUrl) {
+          updatedBlock.imageUrl = defaultImageUrl;
         }
-        return block;
+        return updatedBlock;
       });
     }
 

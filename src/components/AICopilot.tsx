@@ -107,73 +107,73 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
         const apiKey = userApiKey.trim();
         // Schema definition for client side execution
         const responseSchema = {
-          type: "OBJECT",
+          type: "object",
           properties: {
-            title: { type: "STRING", description: "Titolo in italiano evocativo del capitolo" },
-            description: { type: "STRING", description: "Presentazione obiettivi didattici in italiano" },
+            title: { type: "string", description: "Titolo in italiano evocativo del capitolo" },
+            description: { type: "string", description: "Presentazione obiettivi didattici in italiano" },
             blocks: {
-              type: "ARRAY",
+              type: "array",
               description: "Sequenza strutturata di massimo 4 blocchi didattici",
               items: {
-                type: "OBJECT",
+                type: "object",
                 properties: {
-                  type: { type: "STRING", description: "grammar, dialogue, vocabulary, exercise, image" },
-                  grammarTitle: { type: "STRING" },
-                  grammarText: { type: "STRING", description: "Spiegazione sintetica ed efficace in italiano (2 paragrafi max)" },
+                  type: { type: "string", description: "grammar, dialogue, vocabulary, exercise, image" },
+                  grammarTitle: { type: "string" },
+                  grammarText: { type: "string", description: "Spiegazione sintetica ed efficace in italiano (2 paragrafi max)" },
                   grammarTerms: {
-                    type: "ARRAY",
+                    type: "array",
                     items: {
-                      type: "OBJECT",
+                      type: "object",
                       properties: {
-                        term: { type: "STRING" },
-                        phonetic: { type: "STRING" },
-                        translation: { type: "STRING" }
+                        term: { type: "string" },
+                        phonetic: { type: "string" },
+                        translation: { type: "string" }
                       },
                       required: ["term", "phonetic", "translation"]
                     }
                   },
-                  dialogueTitle: { type: "STRING" },
-                  dialogueCharacters: { type: "ARRAY", items: { type: "STRING" } },
+                  dialogueTitle: { type: "string" },
+                  dialogueCharacters: { type: "array", items: { type: "string" } },
                   dialogueLines: {
-                    type: "ARRAY",
+                    type: "array",
                     items: {
-                      type: "OBJECT",
+                      type: "object",
                       properties: {
-                        character: { type: "STRING" },
-                        text: { type: "STRING" },
-                        phonetic: { type: "STRING" },
-                        translation: { type: "STRING" }
+                        character: { type: "string" },
+                        text: { type: "string" },
+                        phonetic: { type: "string" },
+                        translation: { type: "string" }
                       },
                       required: ["character", "text", "phonetic", "translation"]
                     }
                   },
                   vocabularyList: {
-                    type: "ARRAY",
+                    type: "array",
                     items: {
-                      type: "OBJECT",
+                      type: "object",
                       properties: {
-                        term: { type: "STRING" },
-                        phonetic: { type: "STRING" },
-                        translation: { type: "STRING" },
-                        example: { type: "STRING" },
-                        examplePhonetic: { type: "STRING" },
-                        exampleTranslation: { type: "STRING" }
+                        term: { type: "string" },
+                        phonetic: { type: "string" },
+                        translation: { type: "string" },
+                        example: { type: "string" },
+                        examplePhonetic: { type: "string" },
+                        exampleTranslation: { type: "string" }
                       },
                       required: ["term", "phonetic", "translation"]
                     }
                   },
-                  exerciseType: { type: "STRING", description: "multiple-choice, fill-blank, reorder" },
-                  exerciseQuestion: { type: "STRING" },
-                  exerciseNote: { type: "STRING" },
-                  mcOptions: { type: "ARRAY", items: { type: "STRING" } },
-                  mcCorrectIndex: { type: "INTEGER" },
-                  fbSentenceBefore: { type: "STRING" },
-                  fbSentenceAfter: { type: "STRING" },
-                  fbCorrectAnswer: { type: "STRING" },
-                  reorderWords: { type: "ARRAY", items: { type: "STRING" } },
-                  reorderCorrectOrder: { type: "STRING" },
-                  imageUrl: { type: "STRING" },
-                  imageCaption: { type: "STRING" }
+                  exerciseType: { type: "string", description: "multiple-choice, fill-blank, reorder" },
+                  exerciseQuestion: { type: "string" },
+                  exerciseNote: { type: "string" },
+                  mcOptions: { type: "array", items: { type: "string" } },
+                  mcCorrectIndex: { type: "integer" },
+                  fbSentenceBefore: { type: "string" },
+                  fbSentenceAfter: { type: "string" },
+                  fbCorrectAnswer: { type: "string" },
+                  reorderWords: { type: "array", items: { type: "string" } },
+                  reorderCorrectOrder: { type: "string" },
+                  imageUrl: { type: "string" },
+                  imageCaption: { type: "string" }
                 },
                 required: ["type"]
               }
@@ -267,6 +267,7 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
         description: parsedChapter.description || `Studio di livello ${level} sul tema ${topic}`,
         blocks: (parsedChapter.blocks || []).map((block: any, idx: number) => ({
           ...block,
+          type: (block.type || '').split('-')[0].toLowerCase(), // normalize types like 'grammar-block' or 'GRAMMAR' to 'grammar'
           id: `block-ai-${Date.now()}-${idx}`
         }))
       };

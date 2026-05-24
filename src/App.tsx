@@ -123,10 +123,9 @@ export default function App() {
     });
     saveBooksState(updated);
 
-    // If active book, automatically navigate to new generated section
-    if (activeBookId === bookId) {
-      setActiveChapterId(chapter.id);
-    }
+    // Automatically navigate to and open the new generated book and chapter
+    setActiveBookId(bookId);
+    setActiveChapterId(chapter.id);
   };
 
   // Active viewing structures
