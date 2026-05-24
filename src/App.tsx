@@ -214,6 +214,7 @@ export default function App() {
       {isCopilotOpen && (
         <AICopilot
           books={books}
+          defaultBookId={activeBookId || undefined}
           onAddGeneratedChapter={handleAddNewChapter}
           onClose={() => setIsCopilotOpen(false)}
         />

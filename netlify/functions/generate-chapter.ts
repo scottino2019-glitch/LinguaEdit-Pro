@@ -166,7 +166,23 @@ export const handler = async (event: any) => {
       required: ['title', 'description', 'blocks']
     };
 
-    const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${language} (${level}) a studenti italiani.
+    const getLanguageInItalian = (lang: string) => {
+      switch (lang) {
+        case 'Japanese': return 'Giapponese';
+        case 'Chinese': return 'Cinese Mandarino';
+        case 'Korean': return 'Coreano';
+        case 'Russian': return 'Russo';
+        case 'Turkish': return 'Turco';
+        case 'Arabic': return 'Arabo';
+        case 'Thai': return 'Thai';
+        case 'Hindi': return 'Hindi';
+        default: return lang;
+      }
+    };
+
+    const langInItalian = getLanguageInItalian(language);
+
+    const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${langInItalian} (${level}) a studenti italiani.
 Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
 1 Blocco Grammar (spiegazione corta di 1 regola + max 2 termini salienti).
 1 Blocco Dialogue (una conversazione vivace di sole 2 o 3 battute totali).
@@ -176,7 +192,7 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.5-flash',
-      contents: `Genera una micro-lezione per ${language} (${level}) su tema: ${topic}`,
+      contents: `Genera una micro-lezione per ${langInItalian} (${level}) su tema: ${topic}`,
       config: {
         systemInstruction: systemPrompt,
         responseMimeType: 'application/json',

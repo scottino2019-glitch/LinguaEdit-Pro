@@ -11,6 +11,7 @@ interface AICopilotProps {
   books: Book[];
   onAddGeneratedChapter: (bookId: string, chapter: Chapter) => void;
   onClose: () => void;
+  defaultBookId?: string;
 }
 
 const LOADING_STEPS = [
@@ -23,8 +24,22 @@ const LOADING_STEPS = [
   'Lucidando la copertina e terminando l\'impaginazione...',
 ];
 
-export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotProps) {
-  const [targetBookId, setTargetBookId] = useState(books[0]?.id || '');
+const getLanguageInItalian = (lang: string) => {
+  switch (lang) {
+    case 'Japanese': return 'Giapponese';
+    case 'Chinese': return 'Cinese Mandarino';
+    case 'Korean': return 'Coreano';
+    case 'Russian': return 'Russo';
+    case 'Turkish': return 'Turco';
+    case 'Arabic': return 'Arabo';
+    case 'Thai': return 'Thai';
+    case 'Hindi': return 'Hindi';
+    default: return lang;
+  }
+};
+
+export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId }: AICopilotProps) {
+  const [targetBookId, setTargetBookId] = useState(defaultBookId || books[0]?.id || '');
   const [topic, setTopic] = useState('');
   const [level, setLevel] = useState<Book['level']>('Principiante');
   const [loading, setLoading] = useState(false);
@@ -167,7 +182,8 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
           required: ["title", "description", "blocks"]
         };
 
-        const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${targetBook.language} (${level}) a studenti italiani. Crea una lezione sintetica di massimo 4 blocchi (1 grammar, 1 dialogue, 1 vocab, 1 exercise). Scrivi tutto in italiano.`;
+        const langInItalian = getLanguageInItalian(targetBook.language);
+        const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${langInItalian} (${level}) a studenti italiani. Crea una lezione sintetica di massimo 4 blocchi (1 grammar, 1 dialogue, 1 vocab, 1 exercise). Scrivi tutto in italiano.`;
 
         // We call gemini-2.5-flash directly. Excellent performance and fully client side!
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
@@ -180,7 +196,7 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose }: AICopilotPr
             contents: [
               {
                 parts: [
-                  { text: `Genera una micro-lezione per ${targetBook.language} (${level}) su tema: ${topic}` }
+                  { text: `Genera una micro-lezione per ${langInItalian} (${level}) su tema: ${topic}` }
                 ]
               }
             ],
