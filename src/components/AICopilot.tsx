@@ -101,92 +101,104 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
     }
 
     try {
-      let parsedChapter: any = null;
+      let generatedBlocks: any[] = [];
+      let chapterTitle = 'Nuovo Capitolo Autogenerato';
+      let chapterDesc = `Studio di livello ${level} sul tema ${topic}`;
 
       if (useLocalKey && userApiKey.trim()) {
         const apiKey = userApiKey.trim();
-        // Schema definition for client side execution
+        // Flat Response Schema for direct Gemini API calls to bypass timeouts & prevent model confusion
         const responseSchema = {
           type: "object",
           properties: {
             title: { type: "string", description: "Titolo in italiano evocativo del capitolo" },
             description: { type: "string", description: "Presentazione obiettivi didattici in italiano" },
-            blocks: {
+            
+            // Grammar Block fields
+            grammarTitle: { type: "string", description: "Titolo della nota grammaticale" },
+            grammarText: { type: "string", description: "Spiegazione approfondita in italiano. Supporta formattazione Markdown." },
+            grammarTerms: {
               type: "array",
-              description: "Sequenza strutturata di massimo 4 blocchi didattici",
               items: {
                 type: "object",
                 properties: {
-                  type: { type: "string", description: "grammar, dialogue, vocabulary, exercise, image" },
-                  grammarTitle: { type: "string" },
-                  grammarText: { type: "string", description: "Spiegazione sintetica ed efficace in italiano (2 paragrafi max)" },
-                  grammarTerms: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        term: { type: "string" },
-                        phonetic: { type: "string" },
-                        translation: { type: "string" }
-                      },
-                      required: ["term", "phonetic", "translation"]
-                    }
-                  },
-                  dialogueTitle: { type: "string" },
-                  dialogueCharacters: { type: "array", items: { type: "string" } },
-                  dialogueLines: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        character: { type: "string" },
-                        text: { type: "string" },
-                        phonetic: { type: "string" },
-                        translation: { type: "string" }
-                      },
-                      required: ["character", "text", "phonetic", "translation"]
-                    }
-                  },
-                  vocabularyList: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        term: { type: "string" },
-                        phonetic: { type: "string" },
-                        translation: { type: "string" },
-                        example: { type: "string" },
-                        examplePhonetic: { type: "string" },
-                        exampleTranslation: { type: "string" }
-                      },
-                      required: ["term", "phonetic", "translation"]
-                    }
-                  },
-                  exerciseType: { type: "string", description: "multiple-choice, fill-blank, reorder" },
-                  exerciseQuestion: { type: "string" },
-                  exerciseNote: { type: "string" },
-                  mcOptions: { type: "array", items: { type: "string" } },
-                  mcCorrectIndex: { type: "integer" },
-                  fbSentenceBefore: { type: "string" },
-                  fbSentenceAfter: { type: "string" },
-                  fbCorrectAnswer: { type: "string" },
-                  reorderWords: { type: "array", items: { type: "string" } },
-                  reorderCorrectOrder: { type: "string" },
-                  imageUrl: { type: "string" },
-                  imageCaption: { type: "string" }
+                  term: { type: "string" },
+                  phonetic: { type: "string" },
+                  translation: { type: "string" }
                 },
-                required: ["type"]
+                required: ["term", "phonetic", "translation"]
               }
-            }
+            },
+
+            // Dialogue Block fields
+            dialogueTitle: { type: "string" },
+            dialogueCharacters: { type: "array", items: { type: "string" } },
+            dialogueLines: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  character: { type: "string" },
+                  text: { type: "string" },
+                  phonetic: { type: "string" },
+                  translation: { type: "string" }
+                },
+                required: ["character", "text", "phonetic", "translation"]
+              }
+            },
+
+            // Vocabulary Block fields
+            vocabularyList: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  term: { type: "string" },
+                  phonetic: { type: "string" },
+                  translation: { type: "string" },
+                  example: { type: "string" },
+                  examplePhonetic: { type: "string" },
+                  exampleTranslation: { type: "string" }
+                },
+                required: ["term", "phonetic", "translation", "example", "examplePhonetic", "exampleTranslation"]
+              }
+            },
+
+            // Exercise Block fields
+            exerciseType: { type: "string", description: "multiple-choice, fill-blank, reorder" },
+            exerciseQuestion: { type: "string" },
+            exerciseNote: { type: "string" },
+            mcOptions: { type: "array", items: { type: "string" } },
+            mcCorrectIndex: { type: "integer" },
+            fbSentenceBefore: { type: "string" },
+            fbSentenceAfter: { type: "string" },
+            fbCorrectAnswer: { type: "string" },
+            reorderWords: { type: "array", items: { type: "string" } },
+            reorderCorrectOrder: { type: "string" }
           },
-          required: ["title", "description", "blocks"]
+          required: [
+            "title", "description", 
+            "grammarTitle", "grammarText", "grammarTerms",
+            "dialogueTitle", "dialogueCharacters", "dialogueLines",
+            "vocabularyList",
+            "exerciseType", "exerciseQuestion", "exerciseNote"
+          ]
         };
 
         const langInItalian = getLanguageInItalian(targetBook.language);
-        const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${langInItalian} (${level}) a studenti italiani. Crea una lezione sintetica di massimo 4 blocchi (1 grammar, 1 dialogue, 1 vocab, 1 exercise). Scrivi tutto in italiano.`;
+        const systemPrompt = `Sei un professore d'eccellenza e madrelingua specializzato nell'insegnamento di ${langInItalian} (${level}) a studenti italiani.
+Crea una lezione estremamente ricca, completa e curata nei dettagli, impostando e completando accuratamente tutti i parametri richiesti nello schema di risposta.
 
-        // We call gemini-2.5-flash directly. Excellent performance and fully client side!
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+1. Sezioni della lezione da compilare obbligatoriamente:
+   - Grammatica: Spiega in italiano una regola con precisione in "grammarText" e compila da 2 a 3 termini in "grammarTerms".
+   - Dialogo: Configura "dialogueTitle" ed elabora uno scambio interattivo con almeno 3-4 battute alternate in "dialogueLines".
+   - Vocabolario: Configura almeno 4-5 parole chiave in "vocabularyList", completando per ognuna parola, fonetica, traduzione, frase d'esempio, frase d'esempio fonetica e traduzione frase d'esempio.
+   - Esercizio: Progetta un ottimo esercizio d'apprendimento ('multiple-choice', 'fill-blank' o 'reorder') compilando le relative proprietà del tipo stabilito.
+
+Tutte le spiegazioni teoriche, le traduzioni, i commenti e le consegne degli esercizi devono essere scritti esclusivamente in lingua italiana.`;
+
+        // We call gemini-3.5-flash-direct for blazing speed and structure compliance
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
         const directResponse = await fetch(apiUrl, {
           method: 'POST',
           headers: {
@@ -208,7 +220,7 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
             generationConfig: {
               responseMimeType: 'application/json',
               responseSchema: responseSchema,
-              temperature: 0.7
+              temperature: 0.3
             }
           })
         });
@@ -229,10 +241,46 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
           throw new Error('Nessun testo generato dalle API di Google Gemini.');
         }
 
-        parsedChapter = JSON.parse(responseText);
+        const parsed = JSON.parse(responseText);
+        chapterTitle = parsed.title || 'Nuovo Capitolo Autogenerato';
+        chapterDesc = parsed.description || `Studio di livello ${level} sul tema ${topic}`;
+
+        // Map flat fields to standard blocks layout
+        generatedBlocks.push({
+          type: 'grammar',
+          grammarTitle: parsed.grammarTitle || 'Grammatica e Sintassi',
+          grammarText: parsed.grammarText || 'Regola grammaticale d\'esempio.',
+          grammarTerms: parsed.grammarTerms || []
+        });
+
+        generatedBlocks.push({
+          type: 'dialogue',
+          dialogueTitle: parsed.dialogueTitle || 'Dialogo Conversazionale d\'Esempio',
+          dialogueCharacters: parsed.dialogueCharacters || ['Studente', 'Insegnante'],
+          dialogueLines: parsed.dialogueLines || []
+        });
+
+        generatedBlocks.push({
+          type: 'vocabulary',
+          vocabularyList: parsed.vocabularyList || []
+        });
+
+        generatedBlocks.push({
+          type: 'exercise',
+          exerciseType: parsed.exerciseType || 'multiple-choice',
+          exerciseQuestion: parsed.exerciseQuestion || 'Completa l\'esercizio per verificare cosa hai appreso:',
+          exerciseNote: parsed.exerciseNote || 'Rifletti sulla regola indicata e prova a rispondere.',
+          mcOptions: parsed.mcOptions || [],
+          mcCorrectIndex: typeof parsed.mcCorrectIndex === 'number' ? parsed.mcCorrectIndex : 0,
+          fbSentenceBefore: parsed.fbSentenceBefore || '',
+          fbSentenceAfter: parsed.fbSentenceAfter || '',
+          fbCorrectAnswer: parsed.fbCorrectAnswer || '',
+          reorderWords: parsed.reorderWords || [],
+          reorderCorrectOrder: parsed.reorderCorrectOrder || ''
+        });
 
       } else {
-        // Fall back to serverless api (our Express route / Netlify function proxy)
+        // Fall back to serverless api (our Express route)
         const response = await fetch('/api/generate-chapter', {
           method: 'POST',
           headers: {
@@ -246,7 +294,6 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
         });
 
         if (!response.ok) {
-          // Detect HTML error codes (like Netlify's 504 HTML page) and supply human-friendly message
           const contentType = response.headers.get('content-type') || '';
           if (contentType.includes('text/html')) {
             throw new Error(
@@ -257,19 +304,65 @@ export function AICopilot({ books, onAddGeneratedChapter, onClose, defaultBookId
           throw new Error(errorData.details || errorData.error || 'Errore di rete generico.');
         }
 
-        parsedChapter = await response.json();
+        const parsed = await response.json();
+        chapterTitle = parsed.title;
+        chapterDesc = parsed.description;
+        generatedBlocks = parsed.blocks || [];
       }
       
+      // Selected language fallback images
+      let defaultImageUrl = 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&q=80&w=800'; // Japan
+      if (targetBook.language === 'Chinese') {
+        defaultImageUrl = 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&q=80&w=800'; // China
+      } else if (targetBook.language === 'Korean') {
+        defaultImageUrl = 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&q=80&w=800'; // Korea
+      } else if (targetBook.language === 'Russian') {
+        defaultImageUrl = 'https://images.unsplash.com/photo-1512495039889-52a3b799c9bc?auto=format&fit=crop&q=80&w=800'; // Russia
+      } else if (targetBook.language === 'Turkish') {
+        defaultImageUrl = 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&q=80&w=800'; // Turkey
+      } else if (targetBook.language === 'Arabic') {
+        defaultImageUrl = 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&q=80&w=800'; // Arab Countries
+      } else if (targetBook.language === 'Thai') {
+        defaultImageUrl = 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&q=80&w=800'; // Thailand
+      } else if (targetBook.language === 'Hindi') {
+        defaultImageUrl = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=800'; // India
+      }
+
       // Map correctly to Chapter model
       const generatedChapter: Chapter = {
         id: `chapter-ai-${Date.now()}`,
-        title: parsedChapter.title || 'Nuovo Capitolo Autogenerato',
-        description: parsedChapter.description || `Studio di livello ${level} sul tema ${topic}`,
-        blocks: (parsedChapter.blocks || []).map((block: any, idx: number) => ({
-          ...block,
-          type: (block.type || '').split('-')[0].toLowerCase(), // normalize types like 'grammar-block' or 'GRAMMAR' to 'grammar'
-          id: `block-ai-${Date.now()}-${idx}`
-        }))
+        title: chapterTitle || 'Nuovo Capitolo Autogenerato',
+        description: chapterDesc || `Studio di livello ${level} sul tema ${topic}`,
+        blocks: [
+          // 1. Initial Image Block
+          {
+            id: `block-ai-${Date.now()}-img`,
+            type: 'image',
+            imageUrl: defaultImageUrl,
+            imageCaption: `Benvenuti in questa nuova entusiasmante esplorazione sul tema: ${topic}`
+          },
+          // 2. Map other polymorph blocks dynamically
+          ...generatedBlocks.map((block: any, idx: number) => {
+            const rawType = (block.type || '').split('-')[0].toLowerCase();
+            let typeNormalized = rawType;
+            if (rawType.startsWith('gram')) typeNormalized = 'grammar';
+            else if (rawType.startsWith('dial')) typeNormalized = 'dialogue';
+            else if (rawType.startsWith('vocab')) typeNormalized = 'vocabulary';
+            else if (rawType.startsWith('exer') || rawType.startsWith('eser') || rawType === 'exercise' || rawType === 'esercizio') typeNormalized = 'exercise';
+            else if (rawType.startsWith('imag') || rawType.startsWith('imma') || rawType === 'image' || rawType === 'immagine') typeNormalized = 'image';
+            else if (rawType.startsWith('vid')) typeNormalized = 'video';
+
+            const updatedBlock = {
+              ...block,
+              type: typeNormalized,
+              id: `block-ai-${Date.now()}-${idx}`
+            };
+            if (typeNormalized === 'image' && !updatedBlock.imageUrl) {
+              updatedBlock.imageUrl = defaultImageUrl;
+            }
+            return updatedBlock;
+          })
+        ]
       };
 
       onAddGeneratedChapter(targetBookId, generatedChapter);

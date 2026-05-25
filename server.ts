@@ -41,109 +41,100 @@ app.post('/api/generate-chapter', async (req, res) => {
     properties: {
       title: { type: Type.STRING, description: 'Titolo in italiano evocativo del capitolo, es: Capitolo: Alla scoperta del Ramen' },
       description: { type: Type.STRING, description: 'Presentazione degli obiettivi didattici e del contesto culturale in italiano' },
-      blocks: {
+      
+      // Grammar Block fields
+      grammarTitle: { type: Type.STRING, description: 'Titolo della nota grammaticale (es. La particella wa in Giapponese)' },
+      grammarText: { type: Type.STRING, description: 'Spiegazione approfondita della regola grammaticale in italiano con esempi. Supporta formattazione Markdown.' },
+      grammarTerms: {
         type: Type.ARRAY,
-        description: 'Sequenza strutturata di blocchi educativi interattivi',
+        description: 'Termini e vocaboli salienti associati alla regola grammaticale',
         items: {
           type: Type.OBJECT,
           properties: {
-            type: { 
-              type: Type.STRING, 
-              description: 'Il tipo di blocco. Valori ammessi: grammar, dialogue, vocabulary, exercise, image' 
-            },
-            
-            // Grammar Block fields
-            grammarTitle: { type: Type.STRING, description: 'Titolo della nota grammaticale' },
-            grammarText: { type: Type.STRING, description: 'Spiegazione approfondita delle regole in italiano, includendo brevi specchietti e paragrafi. Supporta formattazione Markdown.' },
-            grammarTerms: {
-              type: Type.ARRAY,
-              description: 'Termini salienti associati alla regola',
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  term: { type: Type.STRING, description: 'Termine originale in kanji/kana, caratteri cinesi o hangeul con pronuncia tra parentesi se rilevante' },
-                  phonetic: { type: Type.STRING, description: 'Trascrizione fonetica (Pinyin/Rōmaji/Coreano romanizzato)' },
-                  translation: { type: Type.STRING, description: 'Traduzione in italiano' }
-                },
-                required: ['term', 'phonetic', 'translation']
-              }
-            },
-
-            // Dialogue Block fields
-            dialogueTitle: { type: Type.STRING, description: 'Titolo del contesto della conversazione' },
-            dialogueCharacters: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Nomi dei personaggi coinvolti (massimo 2 per semplicità)'
-            },
-            dialogueLines: {
-              type: Type.ARRAY,
-              description: 'Flusso di battute tra i parlanti',
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  character: { type: Type.STRING, description: 'Nome del parlante' },
-                  text: { type: Type.STRING, description: 'Battuta nativa autentica nella lingua orientale' },
-                  phonetic: { type: Type.STRING, description: 'Pronuncia fonetica accurata (Rōmaji, Pinyin o trascrizione coreana)' },
-                  translation: { type: Type.STRING, description: 'Traduzione fedele in italiano' }
-                },
-                required: ['character', 'text', 'phonetic', 'translation']
-              }
-            },
-
-            // Vocabulary Block fields
-            vocabularyList: {
-              type: Type.ARRAY,
-              description: 'Sillaboro o carte di pronuncia vocabolario',
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  term: { type: Type.STRING, description: 'Parola originale' },
-                  phonetic: { type: Type.STRING, description: 'Trascrizione fonetica' },
-                  translation: { type: Type.STRING, description: 'Traduzione italiana' },
-                  example: { type: Type.STRING, description: 'Breve frase di esempio nativa (facoltativa)' },
-                  examplePhonetic: { type: Type.STRING, description: 'Pronuncia dell\'esempio (facoltativa)' },
-                  exampleTranslation: { type: Type.STRING, description: 'Traduzione dell\'esempio (facoltativa)' }
-                },
-                required: ['term', 'phonetic', 'translation']
-              }
-            },
-
-            // Exercise Block fields
-            exerciseType: { 
-              type: Type.STRING, 
-              description: 'Tipo di esercizio. Valori: multiple-choice, fill-blank, reorder' 
-            },
-            exerciseQuestion: { type: Type.STRING, description: 'Testo dell\'esercizio o consegna in italiano' },
-            exerciseNote: { type: Type.STRING, description: 'Suggerimento o commento chiarificatore' },
-            // Multiple-choice options
-            mcOptions: { 
-              type: Type.ARRAY, 
-              items: { type: Type.STRING }, 
-              description: 'Array di esattamente 4 opzioni di risposta' 
-            },
-            mcCorrectIndex: { type: Type.INTEGER, description: 'Indice corretto (0-3)' },
-            // Fill in the blanks options
-            fbSentenceBefore: { type: Type.STRING, description: 'Testo prima del buco' },
-            fbSentenceAfter: { type: Type.STRING, description: 'Testo dopo il buco' },
-            fbCorrectAnswer: { type: Type.STRING, description: 'Parola nativa esatta da scrivere per riempire' },
-            // Reorder puzzle options
-            reorderWords: { 
-              type: Type.ARRAY, 
-              items: { type: Type.STRING }, 
-              description: 'Lista di parole native disordinate da trascinare/ordinare' 
-            },
-            reorderCorrectOrder: { type: Type.STRING, description: 'La frase riordinata corretta formata unendo i singoli elementi' },
-
-            // Image block fields
-            imageUrl: { type: Type.STRING, description: 'Lasciare vuoto. Verrà selezionato un fallback locale o riempito su richiesta.' },
-            imageCaption: { type: Type.STRING, description: 'Didascalia romantica / culturale sull\'immagine in italiano' }
+            term: { type: Type.STRING, description: 'Termine originale' },
+            phonetic: { type: Type.STRING, description: 'Trascrizione fonetica (Pinyin/Rōmaji/Coreano romanizzato)' },
+            translation: { type: Type.STRING, description: 'Traduzione in italiano' }
           },
-          required: ['type']
+          required: ['term', 'phonetic', 'translation']
         }
-      }
+      },
+
+      // Dialogue Block fields
+      dialogueTitle: { type: Type.STRING, description: 'Titolo del contesto della conversazione (es: Ordinare al ristorante di sushi)' },
+      dialogueCharacters: {
+        type: Type.ARRAY,
+        items: { type: Type.STRING },
+        description: 'Nomi dei personaggi'
+      },
+      dialogueLines: {
+        type: Type.ARRAY,
+        description: 'Un flusso di battute alternate tra i personaggi (almeno 3-4 battute)',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            character: { type: Type.STRING, description: 'Nome del parlante' },
+            text: { type: Type.STRING, description: 'Battuta nativa autentica nella lingua orientale' },
+            phonetic: { type: Type.STRING, description: 'Pronuncia fonetica accurata' },
+            translation: { type: Type.STRING, description: 'Traduzione fedele in italiano' }
+          },
+          required: ['character', 'text', 'phonetic', 'translation']
+        }
+      },
+
+      // Vocabulary Block fields
+      vocabularyList: {
+        type: Type.ARRAY,
+        description: 'Sillaboro o carte di pronuncia vocabolario (almeno 4-5 termini)',
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            term: { type: Type.STRING, description: 'Parola originale' },
+            phonetic: { type: Type.STRING, description: 'Trascrizione fonetica' },
+            translation: { type: Type.STRING, description: 'Traduzione' },
+            example: { type: Type.STRING, description: 'Frase di esempio nativa' },
+            examplePhonetic: { type: Type.STRING, description: 'Pronuncia dell\'esempio' },
+            exampleTranslation: { type: Type.STRING, description: 'Traduzione dell\'esempio' }
+          },
+          required: ['term', 'phonetic', 'translation', 'example', 'examplePhonetic', 'exampleTranslation']
+        }
+      },
+
+      // Exercise Block fields
+      exerciseType: { 
+        type: Type.STRING, 
+        description: 'Tipo di esercizio. Valori ammessi: multiple-choice, fill-blank, reorder' 
+      },
+      exerciseQuestion: { type: Type.STRING, description: 'Testo dell\'esercizio o consegna in italiano' },
+      exerciseNote: { type: Type.STRING, description: 'Suggerimento o commento chiarificatore' },
+      
+      // Multiple-choice options
+      mcOptions: { 
+        type: Type.ARRAY, 
+        items: { type: Type.STRING }, 
+        description: 'Fornire esattamente 4 opzioni di risposta se tipo multiple-choice' 
+      },
+      mcCorrectIndex: { type: Type.INTEGER, description: 'Indice della risposta corretta (0-3)' },
+      
+      // Fill in the blanks options
+      fbSentenceBefore: { type: Type.STRING, description: 'Testo prima del buco' },
+      fbSentenceAfter: { type: Type.STRING, description: 'Testo dopo il buco' },
+      fbCorrectAnswer: { type: Type.STRING, description: 'Parola nativa esatta da scrivere per riempire' },
+      
+      // Reorder puzzle options
+      reorderWords: { 
+        type: Type.ARRAY, 
+        items: { type: Type.STRING },
+        description: 'Lista di parole native disordinate'
+      },
+      reorderCorrectOrder: { type: Type.STRING, description: 'La frase riordinata corretta formata unendo i singoli elementi' }
     },
-    required: ['title', 'description', 'blocks']
+    required: [
+      'title', 'description', 
+      'grammarTitle', 'grammarText', 'grammarTerms',
+      'dialogueTitle', 'dialogueCharacters', 'dialogueLines',
+      'vocabularyList',
+      'exerciseType', 'exerciseQuestion', 'exerciseNote'
+    ]
   };
 
   try {
@@ -163,13 +154,16 @@ app.post('/api/generate-chapter', async (req, res) => {
 
     const langInItalian = getLanguageInItalian(language);
 
-    const systemPrompt = `Sei un professore d'eccellenza specializzato nell'insegnamento di ${langInItalian} (${level}) a studenti italiani.
-Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
-1 Blocco Grammar (spiegazione corta di 1 regola + max 2 termini salienti).
-1 Blocco Dialogue (una conversazione vivace di sole 2 o 3 battute totali).
-1 Blocco Vocabulary (con soli 2 termini importanti + 1 frase ciascuno).
-1 Blocco Exercise (tipo scelta multipla o completa la frase molto semplice).
-È fondamentale che la lezione sia breve per generare in meno di 5 secondi. Scrivi spiegazioni e consegne esclusivamente in italiano.`;
+    const systemPrompt = `Sei un professore d'eccellenza e madrelingua specializzato nell'insegnamento di ${langInItalian} (${level}) a studenti italiani.
+Crea una lezione estremamente ricca, completa e curata nei dettagli, impostando e completando accuratamente tutti i parametri richiesti nello schema di risposta.
+
+1. Sezioni della lezione da compilare obbligatoriamente:
+   - Grammatica: Spiega in italiano una regola con precisione in "grammarText" e compila da 2 a 3 termini in "grammarTerms".
+   - Dialogo: Configura "dialogueTitle" ed elabora uno scambio interattivo con almeno 3-4 battute alternate in "dialogueLines".
+   - Vocabolario: Configura almeno 4-5 parole chiave in "vocabularyList", completando per ognuna parola, fonetica, traduzione, frase d'esempio, frase d'esempio fonetica e traduzione frase d'esempio.
+   - Esercizio: Progetta un ottimo esercizio d'apprendimento ('multiple-choice', 'fill-blank' o 'reorder') compilando le relative proprietà del tipo stabilito.
+
+Tutte le spiegazioni teoriche, le traduzioni, i commenti e le consegne degli esercizi devono essere scritti esclusivamente in lingua italiana.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.5-flash',
@@ -178,7 +172,7 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
         systemInstruction: systemPrompt,
         responseMimeType: 'application/json',
         responseSchema: responseSchema,
-        temperature: 0.7
+        temperature: 0.3
       }
     });
 
@@ -187,7 +181,7 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
       throw new Error('Nessuna risposta ricevuta dal modello Gemini.');
     }
 
-    const parsedData = JSON.parse(outputText);
+    const parsed = JSON.parse(outputText);
     
     // Inject beautiful default images based on language & topic to enrich output
     let defaultImageUrl = 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&q=80&w=800'; // Japan
@@ -207,20 +201,58 @@ Crea una lezione molto sintetica, focalizzata, di massimo 4 blocchi in totale:
       defaultImageUrl = 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=800'; // India
     }
 
-    // Adapt image blocks to have a fallbacks if empty and normalize type to lowercase
-    if (parsedData.blocks) {
-      parsedData.blocks = parsedData.blocks.map((block: any, idx: number) => {
-        const typeNormalized = (block.type || '').split('-')[0].toLowerCase();
-        const updatedBlock = {
-          ...block,
-          type: typeNormalized
-        };
-        if (typeNormalized === 'image' && !updatedBlock.imageUrl) {
-          updatedBlock.imageUrl = defaultImageUrl;
-        }
-        return updatedBlock;
-      });
-    }
+    // Convert flat fields to the standard polymorphism blocks format
+    const blocks: any[] = [];
+    
+    // 1. Image block
+    blocks.push({
+      type: 'image',
+      imageUrl: defaultImageUrl,
+      imageCaption: `Foto culturale evocativa del paese per il tema: ${topic}`
+    });
+
+    // 2. Grammar Block
+    blocks.push({
+      type: 'grammar',
+      grammarTitle: parsed.grammarTitle || 'Grammatica e Sintassi',
+      grammarText: parsed.grammarText || 'Regola grammaticale d\'esempio.',
+      grammarTerms: parsed.grammarTerms || []
+    });
+
+    // 3. Dialogue Block
+    blocks.push({
+      type: 'dialogue',
+      dialogueTitle: parsed.dialogueTitle || 'Dialogo Conversazionale d\'Esempio',
+      dialogueCharacters: parsed.dialogueCharacters || ['Studente', 'Insegnante'],
+      dialogueLines: parsed.dialogueLines || []
+    });
+
+    // 4. Vocabulary Block
+    blocks.push({
+      type: 'vocabulary',
+      vocabularyList: parsed.vocabularyList || []
+    });
+
+    // 5. Exercise Block
+    blocks.push({
+      type: 'exercise',
+      exerciseType: parsed.exerciseType || 'multiple-choice',
+      exerciseQuestion: parsed.exerciseQuestion || 'Completa l\'esercizio per verificare cosa hai appreso:',
+      exerciseNote: parsed.exerciseNote || 'Rifletti sulla regola indicata e prova a rispondere.',
+      mcOptions: parsed.mcOptions || [],
+      mcCorrectIndex: typeof parsed.mcCorrectIndex === 'number' ? parsed.mcCorrectIndex : 0,
+      fbSentenceBefore: parsed.fbSentenceBefore || '',
+      fbSentenceAfter: parsed.fbSentenceAfter || '',
+      fbCorrectAnswer: parsed.fbCorrectAnswer || '',
+      reorderWords: parsed.reorderWords || [],
+      reorderCorrectOrder: parsed.reorderCorrectOrder || ''
+    });
+
+    const parsedData = {
+      title: parsed.title || 'Nuovo Capitolo',
+      description: parsed.description || '',
+      blocks: blocks
+    };
 
     return res.json(parsedData);
   } catch (error: any) {
